@@ -3,57 +3,53 @@
 import os
 from peptide import Peptide
 
-def pep_pattern(chunk,chunk_len,repeat_len):
-    #peptide=""
-    #for i in range(0,repeat_len):
-    #    peptide = peptide+chunk
+def pep_pattern():
     
-    peptide=chunk*repeat_len
+    C = [ "GLU", "ASP", "ARG", "LYS" ]; # Charged
+    A = [ "TYR", "PHE" ]; # Aromatic
+    H = [ "GLY", "ALA", "LEU" ]; # Hydrophobic
+    sequences = []
+    filenames = [] 
+    counter = 0
 
-    return (peptide,chunk_len*repeat_len) # return a tuple
+    # First Generation:
+    for i in range(4): # Charged
+        for j in range(2): # Aromatic
+            for r in [ 1, 2, 4, 8 ]: # residue repeat in chunk
+                pattern = ( C[i] + ' ' ) * r + ( A[j] + ' ' ) * r # 1 chunk
+                min_len = ( 64 // len( pattern ) ) # min length = 16 res
+                max_len = min_len * 2 # max length = 32 res
+			    #print(min_len,max_len)
+                
+                for k in range( min_len, max_len + 1 ): # variation in length
+                    filenames.append( C[i] + str(r) + A[j] + str(r) + '_' + str(k) )
+                    sequences.append( pattern * k )
+                    counter += 1
+
+    #print(counter)
+    return( filenames, sequences, counter )
 
 def main():
-    pos_res=["ARG","LYS"]
-    aro_res=["TYR","PHE"]
-    neu_res=["ALA","GLY","LEU"]
-
-    # SET #5: Alternating +AHHHH:
-    for repeat in range(2,5): # 2 to 4+1
-        for i in [0,1]:
-            for j in [0,1]:
-                for k in [0,1,2]:
-                    print(repeat,i,j,k)
-                    #pep,pep_len = pep_pattern(pos_res[i]+" "+aro_res[j]+" ",2,repeat)
-                    
-                    ch=(pos_res[i]+" ")*2+(aro_res[j]+" ")*2+(neu_res[k]+" ")*4
-                
-                    ch_len=8
-                    aa=pos_res[i]+aro_res[j]+neu_res[k]
-
-                    sys_nm=str(repeat)+str(aa)
-                    print(ch,ch_len)
-                
-                    print("creating system... "+sys_nm)
-                    peptide_obj=Peptide(sys_nm,ch,ch_len,repeat)
-                    peptide_obj.make_pdb(alt_chirality=False)
             
-                    print("solvating system... "+sys_nm)
-                    peptide_obj.solvate_pdb()
+    filename, sequence, count = pep_pattern()
+    
+    for i in range( 3 ):
+        print( "creating system... " + filename[i] )
+        peptide_obj = Peptide( filename[i], sequence[i] )
+        peptide_obj.make_pdb()
             
-                    print("getting box dim for system: "+sys_nm)
-                    peptide_obj.box_size()
+        print( "solvating system... " + filename[i] )
+        peptide_obj.solvate_pdb()
+            
+        print( "getting box dim for system: " + filename[i] )
+        peptide_obj.box_size()
         
-                    print("Cleaning up files for "+sys_nm)
-                    os.system("mkdir -p "+sys_nm)
-                    os.system("mv "+sys_nm+"* "+sys_nm)
-                    os.system("mv *.inp "+sys_nm) #mv equil.inp and prod.inp
-                    os.system("cp scripts/submit.sh "+sys_nm)
+        print( "Cleaning up files for " + filename[i] )
+        os.system( "mkdir -p " + filename[i] )
+        os.system( "mv " + filename[i] + "* " + filename[i] )
+        os.system( "mv *.inp " + filename[i] ) #mv equil.inp and prod.inp
+        os.system( "cp scripts/submit.sh " + filename[i] )
 
 if __name__ == "__main__":
     main()
 
-#TESTING
-#p1=Peptide("6ALA","LYS LYS ALA ",3,2)
-#p1.make_pdb()
-#p1.solvate_pdb()
-#p1.box_size()
