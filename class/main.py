@@ -3,7 +3,7 @@
 import os
 from peptide import Peptide
 
-def pep_pattern():
+def pep_pattern1(): # gen1
     
     C = [ "GLU", "ASP", "ARG", "LYS" ]; # Charged
     A = [ "TYR", "PHE" ]; # Aromatic
@@ -29,11 +29,37 @@ def pep_pattern():
     #print(counter)
     return( filenames, sequences, counter )
 
+def pep_pattern(): #gen2
+
+    C = [ "GLU", "ASP", "ARG", "LYS"]; # Charged
+    A = ["TYR", "PHE"]; # Aromatic
+    H = ["GLY", "ALA", "LEU"]; # Hydrophobic
+    counter=0
+    sequences = []
+    filenames = []
+
+    for i in range(2,5): # repeat num
+        for j in range(4): # Charged residues
+            for k in range(0,2): # Aromatic residues
+                for l in range(0,3): # Hydrophobic residues   
+                    filenames.append( C[j] + str(1) + A[k] + str(1) + H[l] + str(6) + '_' + str(i) )
+                    sequences.append( ((C[j] + ' ' + A[k] + ' ' + (H[l] + ' ') * 6) * i ) )
+
+                    filenames.append( C[j] + str(2) + A[k] + str(2) + H[l] + str(4) + '_' +str(i) )
+                    sequences.append( ((C[j] + ' ') * 2 + (A[k] + ' ') * 2 + (H[l] + ' ') * 4) * i )
+				    
+                    filenames.append( C[j] + str(3) + A[k] + str(3) + H[l] + str(2) + '_' + str(i) )
+                    sequences.append( ((C[j] + ' ') * 3 + (A[k] + ' ') * 3 + (H[l] + ' ') * 2) * i )
+                    
+                    counter += 3
+    #print(counter)
+    return(filenames, sequences, counter)
+
 def main():
             
     filename, sequence, count = pep_pattern()
     
-    for i in range( 3 ):
+    for i in range( count ):
         print( "creating system... " + filename[i] )
         peptide_obj = Peptide( filename[i], sequence[i] )
         peptide_obj.make_pdb()
